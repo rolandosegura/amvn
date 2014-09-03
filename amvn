@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Run maven in quiet mode and,
+# for a maven output line of the form:
+# [ERROR] <filename>:[17,43] <error message>
+# Transform it to:
+# [ERROR] <filename>:17 <error message>
+# so that in the Acme editor ( http://plan9.bell-labs.com/sys/doc/acme/acme.html )
+# it would be easy to just chord 3 to jump to the file at the line number of the error
+# reported, it removes the [ after the colon and also the column number in the output
+# since a :n,m in acme means lines from n to m in the file not line n, column m.
+
+qset=""
+for f in "$@"
+do
+	case "$f" in
+	"-q"|"--quiet") 
+		qset=$f;;
+	*) ;;
+	esac
+done
+
+[ -z "${qset}" ] && qset="-q"
+mvn ${qset} $@ | sed '/^\[ERROR\]/s/\[\([0-9][0-9]*\),[0-9][0-9]*\]/\1/'
